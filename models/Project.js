@@ -6,6 +6,7 @@ const ProjectSchema = new Schema(
     description: { type: String, required: true },
     service: { type: Schema.Types.ObjectId, ref: "Service", required: true },
     files: [{ type: String }],
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 )
