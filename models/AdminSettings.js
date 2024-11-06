@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
 
-const AdminSettingsSchema = new Schema(
+const AdminSettingsSchema = new mongoose.Schema(
   {
     businessHours: { type: String, required: true },
     holidays: { type: [String], required: true },
@@ -9,4 +9,4 @@ const AdminSettingsSchema = new Schema(
   { timestamps: true }
 )
 
-module.exports  = mongoose.model("AdminSettings", AdminSettingsSchema)
+module.exports = mongoose.model("AdminSettings", AdminSettingsSchema)

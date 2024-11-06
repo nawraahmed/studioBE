@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
 
-const BookingSchema = new Schema(
+const BookingSchema = new mongoose.Schema(
   {
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     service: { type: Schema.Types.ObjectId, ref: "Service", required: true },
