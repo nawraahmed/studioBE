@@ -1,8 +1,8 @@
 const mongoose = require("mongoose")
 
-const LogsSchema = new Schema(
+const LogsSchema = new mongoose.Schema(
   {
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    user: { type: mongoose.Types.ObjectId, ref: "User", required: true },
     exception: { type: String, required: true },
     type: { type: String, required: true },
   },
