@@ -1,11 +1,11 @@
-const PackageSchema = require("../models/PackageSchema")
+const Package = require("../models/Package")
 const Service = require("../models/Service")
 
 const packageController = {
   createPackage: async (req, res) => {
     try {
       const { name, description, discount, servicesIncluded } = req.body
-      const newPackage = new PackageSchema({
+      const newPackage = new Package({
         name,
         description,
         discount,
@@ -24,7 +24,7 @@ const packageController = {
 
   getPackages: async (req, res) => {
     try {
-      const packages = await PackageSchema.find()
+      const packages = await Package.find()
       if (packages.length === 0) {
         return res.status(404).json({ message: "No packages found" })
       }
@@ -38,7 +38,7 @@ const packageController = {
   getPackageById: async (req, res) => {
     const id = req.params.id
     try {
-      const package = await PackageSchema.findById(id)
+      const package = await Package.findById(id)
       if (!package) {
         return res.status(404).json({ message: "Package not found" })
       }
@@ -53,7 +53,7 @@ const packageController = {
     const id = req.params.id
     const { name, description, discount, servicesIncluded } = req.body
     try {
-      const package = await PackageSchema.findByIdAndUpdate(
+      const package = await Package.findByIdAndUpdate(
         id,
         {
           name,
@@ -76,7 +76,7 @@ const packageController = {
   deletePackage: async (req, res) => {
     const id = req.params.id
     try {
-      const package = await PackageSchema.findByIdAndDelete(id)
+      const package = await Package.findByIdAndDelete(id)
       if (!package) {
         return res.status(404).json({ message: "Package not found" })
       }
