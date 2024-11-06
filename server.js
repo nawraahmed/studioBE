@@ -25,12 +25,20 @@ app.use(express.static(path.join(__dirname, "public")))
 const db = require("./config/db")
 
 // routes
+
 const packageRoute = require("./routes/package")
 const projectRoute = require("./routes/projectRouter")
 
+const reviewRoute = require("./routes/review")
+const serviceRoute = require("./routes/service")
+const adminSettingsRoute = require("./routes/adminSettings")
 // Mount routes
 app.use("/package", packageRoute)
 app.use("/projects", projectRoute)
+
+app.use("/review", reviewRoute)
+app.use("/service", serviceRoute)
+app.use("/adminSettings", adminSettingsRoute)
 
 //listen on port
 app.listen(PORT, () => console.log(`running on port: ${PORT}`))
