@@ -1,15 +1,15 @@
 const Project = require("../models/Project")
 const User = require("../models/User")
-const Service = require("../models/Service") // assuming Service model exists
+const Service = require("../models/Service")
 const multer = require("multer")
 
 // Set up multer for file upload handling
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "public/uploads/projects/") // Store files in the "uploads/projects/" folder
+    cb(null, "public/uploads/projects/")
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + "_" + file.originalname) // Append timestamp to file name to avoid conflicts
+    cb(null, Date.now() + "_" + file.originalname)
   },
 })
 
@@ -21,23 +21,20 @@ const projectController = {
   createProject: async (req, res) => {
     try {
       const { title, description, service, userId } = req.body
-      const files = req.files // Access uploaded files from req.files
+      const files = req.files
 
-      // Check if required fields are provided
-      if (!title || !description) {
+      if (!title || !description || !service || !userId) {
         return res.status(400).json({
           message: "Title, description, service, and userId are required.",
         })
       }
 
-      // Validate service and user
       const serviceObj = await Service.findById(service)
       const userObj = await User.findById(userId)
       if (!serviceObj || !userObj) {
         return res.status(404).json({ message: "Service or User not found" })
       }
 
-      // Process files: If files are uploaded, extract their paths
       const filePaths = files ? files.map((file) => file.path) : []
 
       // Create a new project instance
@@ -46,10 +43,9 @@ const projectController = {
         description,
         service,
         user: userId,
-        files: filePaths, // Store file paths
+        files: filePaths,
       })
 
-      // Save the project
       await newProject.save()
 
       return res.status(201).json({
@@ -65,7 +61,7 @@ const projectController = {
   // Get all Projects
   getProjects: async (req, res) => {
     try {
-      const projects = await Project.find().populate("service user") // Populate service and user for better response
+      const projects = await Project.find().populate("service user")
       if (projects.length === 0) {
         return res.status(404).json({ message: "No projects found" })
       }
@@ -95,13 +91,11 @@ const projectController = {
   updateProject: async (req, res) => {
     const projectId = req.params.id
     const { title, description, service, userId } = req.body
-    const files = req.files // Access uploaded files from req.files
+    const files = req.files
 
     try {
-      // Process files: If files are uploaded, extract their paths
       const filePaths = files ? files.map((file) => file.path) : undefined
 
-      // Update project
       const updatedProject = await Project.findByIdAndUpdate(
         projectId,
         {
@@ -109,7 +103,7 @@ const projectController = {
           description,
           service,
           user: userId,
-          files: filePaths, // Update file paths if files are uploaded
+          files: filePaths,
           updatedAt: new Date(),
         },
         { new: true, runValidators: true }

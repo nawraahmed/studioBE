@@ -28,7 +28,6 @@ const db = require("./config/db")
 
 const packageRoute = require("./routes/package")
 const projectRoute = require("./routes/projectRouter")
-
 const reviewRoute = require("./routes/review")
 const serviceRoute = require("./routes/service")
 const adminSettingsRoute = require("./routes/adminSettings")
