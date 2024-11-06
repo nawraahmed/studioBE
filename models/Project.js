@@ -1,10 +1,10 @@
 const mongoose = require("mongoose")
 
-const ProjectSchema = new Schema(
+const ProjectSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
-    service: { type: Schema.Types.ObjectId, ref: "Service", required: true },
+    service: { type: mongoose.Types.ObjectId, ref: "Service", required: true },
     files: [{ type: String }],
   },
   { timestamps: true }
