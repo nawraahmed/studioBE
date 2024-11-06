@@ -17,7 +17,9 @@ const db = require("./config/db")
 
 // routes
 const packageRoute = require("./routes/package")
+const serviceRoute = require("./routes/service")
 // Mount routes
 app.use("/package", packageRoute)
+app.use("/service", serviceRoute)
 //listen on port
 app.listen(PORT, () => console.log(`running on port: ${PORT}`))
