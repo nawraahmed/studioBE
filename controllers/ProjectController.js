@@ -87,31 +87,36 @@ const projectController = {
     }
   },
 
-  // Update a Project
   updateProject: async (req, res) => {
     const projectId = req.params.id
     const { title, description, service, userId } = req.body
     const files = req.files
 
     try {
-      const filePaths = files ? files.map((file) => file.path) : undefined
+      // Fetch the existing project to retain current files if no new files are provided
+      const existingProject = await Project.findById(projectId)
+
+      if (!existingProject) {
+        return res.status(404).json({ message: "Project not found" })
+      }
+
+      const filePaths =
+        files && files.length > 0
+          ? files.map((file) => file.path)
+          : existingProject.files
 
       const updatedProject = await Project.findByIdAndUpdate(
         projectId,
         {
-          title,
-          description,
-          service,
-          user: userId,
+          title: title || existingProject.title,
+          description: description || existingProject.description,
+          service: service || existingProject.service,
+          user: userId || existingProject.user,
           files: filePaths,
           updatedAt: new Date(),
         },
         { new: true, runValidators: true }
       )
-
-      if (!updatedProject) {
-        return res.status(404).json({ message: "Project not found" })
-      }
 
       return res.status(200).json({
         message: "Project updated successfully",
