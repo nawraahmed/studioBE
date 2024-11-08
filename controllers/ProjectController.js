@@ -102,7 +102,7 @@ const projectController = {
 
       const filePaths =
         files && files.length > 0
-          ? files.map((file) => file.path)
+          ? [...existingProject.files, ...files.map((file) => file.path)]
           : existingProject.files
 
       const updatedProject = await Project.findByIdAndUpdate(
