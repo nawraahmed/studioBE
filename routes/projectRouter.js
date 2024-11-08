@@ -11,6 +11,7 @@ router.put(
   upload.array("files"),
   projectController.updateProject
 )
+router.post("/project/:id/delete-file", projectController.deleteFile)
 router.delete("/project/:id", projectController.deleteProject)
 
 module.exports = router
