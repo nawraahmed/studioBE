@@ -1,50 +1,59 @@
-//Load Dep
-const express = require('express')
-const passport = require('passport')
-const cors = require('cors')
-const path = require('path')
+// Load Dependencies
+const express = require("express")
+const cors = require("cors")
+const path = require("path")
+const passport = require("passport")
+const session = require("express-session")
+require("dotenv").config()
+require("./config/passport")
 
-require('./config/passport')
+// Port Configuration
+const PORT = process.env.PORT || 4000
 
-//require and initalize dotenv
-require('dotenv').config()
-
-//PORT conf
-const PORT = process.env.PORT
-
-//Initalize express
+// Initialize Express
 const app = express()
-app.use(express.json())
+
+// Session Configuration
+app.use(
+  session({
+    secret: process.env.SECRET || "defaultsecret",
+    resave: false,
+    saveUninitialized: true,
+  })
+)
+
+// Middleware
 app.use(passport.initialize())
-
+app.use(passport.session())
 app.use(cors())
-
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
-app.use(express.static(path.join(__dirname, 'public')))
+// Serve Static Files
+app.use(express.static(path.join(__dirname, "public")))
 
-//Database Configuration
-const db = require('./config/db')
+// Database Configuration
+const db = require("./config/db")
 
-// routes
-const packageRoute = require('./routes/package')
-const projectRoute = require('./routes/projectRouter')
-const reviewRoute = require('./routes/review')
-const serviceRoute = require('./routes/service')
-const adminSettingsRoute = require('./routes/adminSettings')
-const authRoutes = require('./routes/auth')
-const bookingRouter = require('./routes/booking')
+// Routes
+const packageRoute = require("./routes/package")
+const projectRoute = require("./routes/projectRouter")
+const reviewRoute = require("./routes/review")
+const serviceRoute = require("./routes/service")
+const adminSettingsRoute = require("./routes/adminSettings")
+const authRoutes = require("./routes/auth")
+const googleAuthRoutes = require("./routes/googleAuth")
+const bookingRouter = require("./routes/booking")
 
-// Mount routes
-app.use('/package', packageRoute)
-app.use('/projects', projectRoute)
-app.use('/review', reviewRoute)
-app.use('/service', serviceRoute)
-app.use('/adminSettings', adminSettingsRoute)
-app.use('/', bookingRouter)
+// Mount Routes
+app.use("/package", packageRoute)
+app.use("/projects", projectRoute)
+app.use("/review", reviewRoute)
+app.use("/service", serviceRoute)
+app.use("/adminSettings", adminSettingsRoute)
+app.use("/", bookingRouter)
+app.use("/auth", authRoutes)
+app.use(googleAuthRoutes)
 
-app.use('/api', authRoutes)
-
-//listen on port
-app.listen(PORT, () => console.log(`running on port: ${PORT}`))
+// Start Server
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
