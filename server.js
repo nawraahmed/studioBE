@@ -1,10 +1,11 @@
 // Load Dependencies
+require("dotenv").config()
 const express = require("express")
 const cors = require("cors")
 const path = require("path")
 const passport = require("passport")
 const session = require("express-session")
-require("dotenv").config()
+
 require("./config/passport")
 
 // Port Configuration
