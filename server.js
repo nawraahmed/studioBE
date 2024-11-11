@@ -1,12 +1,16 @@
 //Load Dep
 const express = require('express')
-const mongoose = require('mongoose')
 const passport = require('passport')
 const cors = require('cors')
 const path = require('path')
 
-require('dotenv').config()
 require('./config/passport')
+
+//require and initalize dotenv
+require('dotenv').config()
+
+//PORT conf
+const PORT = process.env.PORT
 
 //Initalize express
 const app = express()
@@ -24,17 +28,24 @@ app.use(express.static(path.join(__dirname, 'public')))
 const db = require('./config/db')
 
 // routes
+<<<<<<< HEAD
 
 // Mount routes
 
 const PORT = process.env.PORT
+=======
+>>>>>>> 73f10990c4c152069374ac345ac5e1b7f38864d3
 const packageRoute = require('./routes/package')
 const projectRoute = require('./routes/projectRouter')
 const reviewRoute = require('./routes/review')
 const serviceRoute = require('./routes/service')
 const adminSettingsRoute = require('./routes/adminSettings')
 const authRoutes = require('./routes/auth')
+<<<<<<< HEAD
 const logsRoute = require('./routes/logs')
+=======
+const bookingRouter = require('./routes/booking')
+>>>>>>> 73f10990c4c152069374ac345ac5e1b7f38864d3
 
 // Mount routes
 app.use('/package', packageRoute)
@@ -42,7 +53,12 @@ app.use('/projects', projectRoute)
 app.use('/review', reviewRoute)
 app.use('/service', serviceRoute)
 app.use('/adminSettings', adminSettingsRoute)
+<<<<<<< HEAD
 app.use('/logs', logsRoute)
+=======
+app.use('/', bookingRouter)
+
+>>>>>>> 73f10990c4c152069374ac345ac5e1b7f38864d3
 app.use('/api', authRoutes)
 
 //listen on port

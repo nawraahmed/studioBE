@@ -87,36 +87,68 @@ const projectController = {
     }
   },
 
-  // Update a Project
   updateProject: async (req, res) => {
     const projectId = req.params.id
     const { title, description, service, userId } = req.body
     const files = req.files
 
     try {
-      const filePaths = files ? files.map((file) => file.path) : undefined
+      // Fetch the existing project to retain current files if no new files are provided
+      const existingProject = await Project.findById(projectId)
+
+      if (!existingProject) {
+        return res.status(404).json({ message: "Project not found" })
+      }
+
+      const filePaths =
+        files && files.length > 0
+          ? [...existingProject.files, ...files.map((file) => file.path)]
+          : existingProject.files
 
       const updatedProject = await Project.findByIdAndUpdate(
         projectId,
         {
-          title,
-          description,
-          service,
-          user: userId,
+          title: title || existingProject.title,
+          description: description || existingProject.description,
+          service: service || existingProject.service,
+          user: userId || existingProject.user,
           files: filePaths,
           updatedAt: new Date(),
         },
         { new: true, runValidators: true }
       )
 
-      if (!updatedProject) {
-        return res.status(404).json({ message: "Project not found" })
-      }
-
       return res.status(200).json({
         message: "Project updated successfully",
         project: updatedProject,
       })
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({ message: "Server error" })
+    }
+  },
+
+  // Delete a file from project
+  deleteFile: async (req, res) => {
+    const projectId = req.params.id
+    const filePath = req.body.filePath
+
+    try {
+      const project = await Project.findById(projectId)
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" })
+      }
+
+      const normalizedFilePath = filePath.replace(/\\/g, "/")
+
+      project.files = project.files.filter(
+        (file) => file.replace(/\\/g, "/") !== normalizedFilePath
+      )
+      await project.save()
+
+      return res
+        .status(200)
+        .json({ message: "File path removed from project successfully" })
     } catch (err) {
       console.error(err)
       return res.status(500).json({ message: "Server error" })
