@@ -26,7 +26,7 @@ const db = require('./config/db')
 // routes
 
 // Mount routes
-app.use('/package', packageRoute)
+
 const PORT = process.env.PORT
 const packageRoute = require('./routes/package')
 const projectRoute = require('./routes/projectRouter')
