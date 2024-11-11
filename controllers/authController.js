@@ -1,6 +1,6 @@
-const User = require("../models/User")
-const jwt = require("jsonwebtoken")
-const middleware = require("../middlewares")
+const User = require('../models/User')
+const jwt = require('jsonwebtoken')
+const middleware = require('../middlewares')
 
 exports.register = async (req, res) => {
   try {
@@ -13,7 +13,7 @@ exports.register = async (req, res) => {
     if (existingUser) {
       return res
         .status(400)
-        .send("A user with that email has already been registered!")
+        .send('A user with that email has already been registered!')
     } else {
       // Creates a new user
       const user = await User.create({ name, email, password: passwordDigest })
@@ -30,7 +30,7 @@ exports.login = async (req, res) => {
     const { email, password } = req.body
     const user = await User.findOne({ email })
     if (!user) {
-      return res.status(401).send({ status: "Error", msg: "User not found" })
+      return res.status(401).send({ status: 'Error', msg: 'User not found' })
     }
 
     // Compares the provided password with the stored password
@@ -40,17 +40,17 @@ exports.login = async (req, res) => {
       const token = middleware.createToken(payload)
       return res.send({ user: payload, token })
     } else {
-      return res.status(401).send({ status: "Error", msg: "Unauthorized" })
+      return res.status(401).send({ status: 'Error', msg: 'Unauthorized' })
     }
   } catch (error) {
     console.error(error)
-    res.status(500).send("An error occurred during login.")
+    res.status(500).send('An error occurred during login.')
   }
 }
 
 exports.googleAuth = (req, res) => {
   const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
+    expiresIn: '1h'
   })
   res.json({ token }) // This should send a token as JSON to confirm success
 }
