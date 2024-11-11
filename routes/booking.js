@@ -20,4 +20,6 @@ router.delete('/bookings/:id', bookingController.deleteBooking)
 // Get all bookings for a specific user
 router.get('/userBookings/:userId', bookingController.getUserBookings)
 
+router.get('/total-bookings', bookingController.getTotalBookings)
+
 module.exports = router
