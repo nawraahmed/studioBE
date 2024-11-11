@@ -1,5 +1,5 @@
 const passport = require("passport")
-const GoogleStrategy = require("passport-google-oauth20").Strategy
+const GoogleStrategy = require("passport-google-oauth").OAuth2Strategy
 const User = require("../models/User")
 require("dotenv").config()
 
@@ -8,9 +8,10 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/api/auth/google/callback",
+      callbackURL: process.env.GOOGLE_CALLBACK,
     },
-    async (accessToken, refreshToken, profile, done) => {
+
+    async (accessToken, refreshToken, profile, cb) => {
       try {
         let user = await User.findOne({ googleId: profile.id })
         if (!user) {
@@ -21,10 +22,23 @@ passport.use(
             role: "user",
           })
         }
-        done(null, user)
+        return cb(null, user)
       } catch (error) {
-        done(error, false)
+        return cb(error, false)
       }
     }
   )
 )
+
+// Add to bottom of config/passport.js
+passport.serializeUser(function (user, cb) {
+  cb(null, user._id)
+})
+
+// Add to bottom of config/passport.js
+passport.deserializeUser(async function (userId, cb) {
+  // It's nice to be able to use await in-line!
+  cb(null, await User.findById(userId))
+})
+
+module.exports = passport

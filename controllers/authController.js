@@ -1,60 +1,62 @@
 const User = require('../models/User')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const middleware = require('../middlewares')
 
 exports.register = async (req, res) => {
-  const { name, email, password, role } = req.body
   try {
-    const existingUser = await User.findOne({ email })
+    // Extracts the necessary fields from the request body
+    const { email, password, name } = req.body
+    // Hashes the provided password
+    let passwordDigest = await middleware.hashPassword(password)
+    // Checks if there has already been a user registered with that email
+    let existingUser = await User.findOne({ email })
     if (existingUser) {
-      return res.status(400).json({ message: 'Email already registered' })
+      return res
+        .status(400)
+        .send('A user with that email has already been registered!')
+    } else {
+      // Creates a new user
+      const user = await User.create({ name, email, password: passwordDigest })
+      // Sends the user as a response
+      res.send(user)
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10)
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      role
-    })
-
-    const token = jwt.sign(
-      { id: newUser._id, role: newUser.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    )
-    res.status(201).json({ token })
   } catch (error) {
-    res.status(500).json({ message: 'Server error' })
+    throw error
   }
 }
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body
   try {
+    const { email, password } = req.body
     const user = await User.findOne({ email })
-    if (!user) return res.status(400).json({ message: 'Invalid credentials' })
+    if (!user) {
+      return res.status(401).send({ status: 'Error', msg: 'User not found' })
+    }
 
-    const validPassword = await bcrypt.compare(password, user.password)
-    if (!validPassword)
-      return res.status(400).json({ message: 'Invalid credentials' })
-
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    )
-    res.json({ token })
+    // Compares the provided password with the stored password
+    const matched = await middleware.comparePassword(password, user.password)
+    if (matched) {
+      const payload = { id: user._id, email: user.email }
+      const token = middleware.createToken(payload)
+      return res.send({ user: payload, token })
+    } else {
+      return res.status(401).send({ status: 'Error', msg: 'Unauthorized' })
+    }
   } catch (error) {
-    res.status(500).json({ message: 'Server error' })
+    console.error(error)
+    res.status(500).send('An error occurred during login.')
   }
 }
 
-exports.googleAuth = async (req, res) => {
-  const token = jwt.sign(
-    { id: req.user._id, role: req.user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '1h' }
-  )
-  res.redirect(`your-frontend-url?token=${token}`)
+exports.googleAuth = (req, res) => {
+  const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
+    expiresIn: '1h'
+  })
+  res.json({ token }) // This should send a token as JSON to confirm success
+}
+
+exports.CheckSession = async (req, res) => {
+  const { payload } = res.locals
+  res.send(payload)
 }

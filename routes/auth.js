@@ -1,19 +1,18 @@
-const express = require('express')
-const passport = require('passport')
-const authController = require('../controllers/authController')
-
+// routes/auth.js
+const express = require("express")
+const passport = require("passport")
+const authController = require("../controllers/authController")
+const middleware = require("../middlewares")
 const router = express.Router()
 
-router.post('/register', authController.register)
-router.post('/login', authController.login)
+router.post("/register", authController.register)
+router.post("/login", authController.login)
+
 router.get(
-  '/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-)
-router.get(
-  '/auth/google/callback',
-  passport.authenticate('google', { session: false }),
-  authController.googleAuth
+  "/session",
+  middleware.stripToken,
+  middleware.verifyToken,
+  authController.CheckSession
 )
 
 module.exports = router
