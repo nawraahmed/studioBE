@@ -18,4 +18,6 @@ router.get(
   authController.googleAuth
 )
 
+router.post("/auth/google/token", authController.verifyGoogleToken)
+
 module.exports = router
