@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const middleware = require("../middlewares")
 const { OAuth2Client } = require("google-auth-library")
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID) // Ensure GOOGLE_CLIENT_ID is set in .env
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 
 exports.register = async (req, res) => {
   try {
@@ -39,7 +39,12 @@ exports.login = async (req, res) => {
     // Compares the provided password with the stored password
     const matched = await middleware.comparePassword(password, user.password)
     if (matched) {
-      const payload = { id: user._id, email: user.email }
+      const payload = {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+      }
       const token = middleware.createToken(payload)
       return res.send({ user: payload, token })
     } else {
@@ -57,19 +62,75 @@ async function verifyGoogleCredential(credential) {
     audience: process.env.GOOGLE_CLIENT_ID,
   })
   const payload = ticket.getPayload()
-  return payload // Contains user info, such as email, name, etc.
+  return payload
 }
 
 exports.verifyGoogleToken = async (req, res) => {
   try {
-    const { credential } = req.body // Receiving credential from frontend
+    const { credential } = req.body
     const userData = await verifyGoogleCredential(credential)
 
     if (userData) {
-      const token = jwt.sign({ id: userData.email }, process.env.APP_SECRET, {
-        expiresIn: "1h",
-      })
-      res.json({ token, user: userData })
+      console.log("Google Payload:", userData)
+
+      // Find user by email
+      let user = await User.findOne({ email: userData.email })
+      console.log(user)
+
+      if (user) {
+        // If user exists, issue a token
+        const token = jwt.sign(
+          {
+            id: user._id,
+            email: user.email,
+            role: user.role,
+            name: user.name,
+            googleId: user.googleId,
+          },
+          process.env.APP_SECRET,
+          { expiresIn: "1h" }
+        )
+
+        res.json({
+          token,
+          user: {
+            name: user.name, // Use name from the database
+            email: user.email,
+            role: user.role,
+            googleId: user.googleId,
+          },
+        })
+      } else {
+        // If user does not exist, create a new user with googleId
+        user = await User.create({
+          name: userData.name,
+          email: userData.email,
+          googleId: userData.sub, // Assuming `sub` is the Google user ID
+          role: "user", // or set to another default role if needed
+        })
+
+        const token = jwt.sign(
+          {
+            id: user._id,
+            email: user.email,
+            role: user.role,
+            name: user.name,
+            googleId: user.googleId,
+          },
+          process.env.APP_SECRET,
+          { expiresIn: "1h" }
+        )
+
+        res.status(201).json({
+          token,
+          user: {
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            googleId: user.googleId,
+          },
+        })
+      }
     } else {
       res.status(401).json({ error: "Invalid token" })
     }
@@ -83,10 +144,53 @@ exports.googleAuth = (req, res) => {
   const token = jwt.sign({ id: req.user._id }, process.env.APP_PASSWORD, {
     expiresIn: "1h",
   })
-  res.json({ token }) // This should send a token as JSON to confirm success
+  res.json({ token })
 }
 
 exports.CheckSession = async (req, res) => {
   const { payload } = res.locals
   res.send(payload)
+}
+
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body
+    const userId = res.locals.payload.id // Extract userId from res.locals.payload
+
+    // Ensure userId is available; if not, return a 401 Unauthorized response
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid or expired token" })
+    }
+
+    // Ensure newPassword and confirmPassword match
+    if (newPassword !== confirmPassword) {
+      return res
+        .status(400)
+        .json({ message: "New password and confirm password do not match" })
+    }
+
+    // Find the user by userId
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
+    // Verify the current password matches the stored password
+    const isMatch = await bcrypt.compare(currentPassword, user.password)
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" })
+    }
+
+    // Hash and update the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    user.password = hashedPassword
+    await user.save()
+
+    return res.status(200).json({ message: "Password updated successfully" })
+  } catch (error) {
+    console.error("Error updating password:", error)
+    return res.status(500).json({ message: "Error updating password" })
+  }
 }
