@@ -20,7 +20,8 @@ const projectController = {
   // Create a new Project
   createProject: async (req, res) => {
     try {
-      const { title, description, service, userId } = req.body
+      const { title, description, service } = req.body
+      const userId = res.locals.payload.id
       const files = req.files
 
       if (!title || !description || !service || !userId) {
