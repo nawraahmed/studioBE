@@ -1,6 +1,6 @@
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-require('dotenv').config()
+const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
+require("dotenv").config()
 
 const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS)
 const APP_SECRET = process.env.APP_SECRET
@@ -22,37 +22,51 @@ const comparePassword = async (password, storedPassword) => {
 }
 
 const createToken = (payload) => {
-  console.log('APP_SECRET during token creation:', process.env.APP_SECRET) // Debugging log
-  return jwt.sign(payload, process.env.APP_SECRET, { expiresIn: '1h' })
+  console.log("APP_SECRET during token creation:", process.env.APP_SECRET) // Debugging log
+  return jwt.sign(payload, process.env.APP_SECRET, { expiresIn: "1h" })
 }
 
 const stripToken = (req, res, next) => {
   try {
-    const token = req.headers['authorization'].split(' ')[1]
+    const token = req.headers["authorization"].split(" ")[1]
     // Gets the token from the request headers {authorization: Bearer Some-Token}
     // Splits the value of the authorization header
     if (token) {
       res.locals.token = token
       // If the token exists we add it to the request lifecycle state
+
+      const decoded = jwt.verify(token, process.env.APP_SECRET)
+      req.userId = decoded.userId // Attach userId from the token to the request object
+
+      console.log('Decoded userId:', req.userId) //confirm it's correctly decoded
       return next()
     }
-    res.status(401).send({ status: 'Error', msg: 'Unauthorized' })
+<<<<<<< HEAD
+    res.status(401).send({ status: "Error", msg: "Unauthorized" })
   } catch (error) {
     console.log(error)
-    res.status(401).send({ status: 'Error', msg: 'Strip Token Error!' })
+    res.status(401).send({ status: "Error", msg: "Strip Token Error!" })
+=======
+    res.status(401).send({ status: 'Error (backend)', msg: 'Unauthorized' })
+  } catch (error) {
+    console.log(error)
+    res
+      .status(401)
+      .send({ status: 'Error (backend)', msg: 'Strip Token Error!' })
+>>>>>>> Nawraa/mailSender
   }
 }
 
 const verifyToken = (req, res, next) => {
-  console.log('APP_SECRET during verification:', process.env.APP_SECRET) // Debugging log
+  console.log("APP_SECRET during verification:", process.env.APP_SECRET) // Debugging log
   const { token } = res.locals
   try {
     const payload = jwt.verify(token, process.env.APP_SECRET)
     res.locals.payload = payload
     next()
   } catch (error) {
-    console.error('Verify Token Error:', error)
-    res.status(401).send({ status: 'Error', msg: 'Invalid token signature' })
+    console.error("Verify Token Error:", error)
+    res.status(401).send({ status: "Error", msg: "Invalid token signature" })
   }
 }
 
@@ -61,5 +75,5 @@ module.exports = {
   comparePassword,
   createToken,
   stripToken,
-  verifyToken
+  verifyToken,
 }
