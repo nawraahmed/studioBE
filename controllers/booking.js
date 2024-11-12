@@ -111,13 +111,11 @@ const bookingController = {
   },
 
   getUserBookings: async (req, res) => {
-
     try {
       const userId = req.params.userId
       console.log('Received userId:', userId)
       console.log('Fetching bookings for userId:', userId)
       const bookings = await Booking.find({ user: userId }).populate('service')
-
 
       if (bookings.length === 0) {
         console.log('No bookings found for userId:', userId) // Log when no bookings are found
@@ -126,12 +124,12 @@ const bookingController = {
           .json({ message: 'No bookings found for this user.' })
       }
 
-
       console.log('Returning bookings:', bookings) // Log the bookings being returned
       return res.status(200).json(bookings)
     } catch (err) {
       console.log('Error occurred:', err) // Log the error if something goes wrong
       return res.status(500).json({ message: 'Server error' })
+    }
   },
 
   getTotalBookings: async (req, res) => {
@@ -169,7 +167,6 @@ const bookingController = {
     } catch (error) {
       console.error('Error getting total bookings:', error)
       res.status(500).send('Server Error')
-
     }
   }
 }
