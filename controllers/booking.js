@@ -103,7 +103,7 @@ const bookingController = {
       if (!deletedBooking) {
         return res.status(404).json({ message: 'Booking not found' })
       }
-      return res.status(200).json({ message: `Booking deleted successfully` })
+      return res.status(200).json({ message: 'Booking deleted successfully' })
     } catch (err) {
       console.log(err)
       return res.status(500).json({ message: 'Server error' })
@@ -111,27 +111,65 @@ const bookingController = {
   },
 
   getUserBookings: async (req, res) => {
-    const userId = req.params.userId
-    console.log('Received userId:', userId) // Log the userId from the URL parameters
 
     try {
-      console.log('Fetching bookings for userId:', userId) // Log before querying the database
-
+      const userId = req.params.userId
+      console.log('Received userId:', userId)
+      console.log('Fetching bookings for userId:', userId)
       const bookings = await Booking.find({ user: userId }).populate('service')
-      //console.log('Bookings found:', bookings) // Log the retrieved bookings
+
 
       if (bookings.length === 0) {
         console.log('No bookings found for userId:', userId) // Log when no bookings are found
         return res
-          .status(404)
-          .json({ message: 'No bookings found for this user' })
+          .status(200)
+          .json({ message: 'No bookings found for this user.' })
       }
+
 
       console.log('Returning bookings:', bookings) // Log the bookings being returned
       return res.status(200).json(bookings)
     } catch (err) {
       console.log('Error occurred:', err) // Log the error if something goes wrong
       return res.status(500).json({ message: 'Server error' })
+  },
+
+  getTotalBookings: async (req, res) => {
+    try {
+      // Get the current date
+      const currentDate = new Date()
+
+      // Define the start of the current month
+      const startOfMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      )
+
+      // Define the end of the current month (last day of the month)
+      const endOfMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      )
+
+      // Get total bookings (all-time)
+      const totalBookings = await Booking.countDocuments()
+
+      // Get monthly bookings (from start of the current month to the last day)
+      const monthlyBookings = await Booking.countDocuments({
+        createdAt: { $gte: startOfMonth, $lt: endOfMonth }
+      })
+
+      // Send the response
+      res.json({
+        totalBookings,
+        monthlyBookings
+      })
+    } catch (error) {
+      console.error('Error getting total bookings:', error)
+      res.status(500).send('Server Error')
+
     }
   }
 }

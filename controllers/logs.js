@@ -23,7 +23,8 @@ const LogsController = {
 
   getLogs: async (req, res) => {
     try {
-      const logs = await Logs.find()
+      // Populate the 'user' field with only the 'name' field from the user model
+      const logs = await Logs.find().populate('user', 'name')
       if (logs.length === 0) {
         return res.status(404).json({ message: 'No Logs found' })
       }
@@ -42,7 +43,7 @@ const LogsController = {
         return res.status(404).json({ message: 'Logs not found' })
       }
       return res.status(200).json({
-        message: `logs deleted sucessfully`
+        message: `Logs deleted successfully`
       })
     } catch (err) {
       console.log(err)
@@ -50,4 +51,5 @@ const LogsController = {
     }
   }
 }
+
 module.exports = LogsController
