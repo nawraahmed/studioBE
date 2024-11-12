@@ -1,9 +1,10 @@
-const User = require('../models/User')
-const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
-const middleware = require('../middlewares')
-const { OAuth2Client } = require('google-auth-library')
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID) // Ensure GOOGLE_CLIENT_ID is set in .env
+const User = require("../models/User")
+const bcrypt = require("bcryptjs")
+const jwt = require("jsonwebtoken")
+const middleware = require("../middlewares")
+const { OAuth2Client } = require("google-auth-library")
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID) 
+
 
 exports.register = async (req, res) => {
   try {
@@ -39,7 +40,12 @@ exports.login = async (req, res) => {
     // Compares the provided password with the stored password
     const matched = await middleware.comparePassword(password, user.password)
     if (matched) {
-      const payload = { id: user._id, email: user.email, role: user.role }
+      const payload = {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+      }
       const token = middleware.createToken(payload)
       return res.send({ user: payload, token })
     } else {
@@ -73,12 +79,19 @@ exports.verifyGoogleToken = async (req, res) => {
 
       if (user) {
         const token = jwt.sign(
-          { id: user._id, email: user.email, role: user.role },
+          { id: user._id, email: user.email, role: user.role, name: user.name },
           process.env.APP_SECRET,
           { expiresIn: '1h' }
         )
 
-        res.json({ token, user: { ...userData, role: user.role } })
+        res.json({
+          token,
+          user: {
+            name: userData.name, // Add name from Google profile
+            email: user.email,
+            role: user.role,
+          },
+        })
       } else {
         res.status(404).json({ error: 'User not registered' })
       }
@@ -95,7 +108,7 @@ exports.googleAuth = (req, res) => {
   const token = jwt.sign({ id: req.user._id }, process.env.APP_PASSWORD, {
     expiresIn: '1h'
   })
-  res.json({ token }) // This should send a token as JSON to confirm success
+  res.json({ token }) 
 }
 
 exports.CheckSession = async (req, res) => {
