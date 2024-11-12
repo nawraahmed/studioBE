@@ -24,29 +24,44 @@ const projectController = {
       const userId = res.locals.payload.id
       const files = req.files
 
+      // Validation: Ensure required fields are provided
       if (!title || !description || !service || !userId) {
         return res.status(400).json({
           message: "Title, description, service, and userId are required.",
         })
       }
 
+      // Ensure service and user exist in the database
       const serviceObj = await Service.findById(service)
       const userObj = await User.findById(userId)
       if (!serviceObj || !userObj) {
         return res.status(404).json({ message: "Service or User not found" })
       }
 
-      const filePaths = files ? files.map((file) => file.path) : []
+      // Handle file uploads
+      const coverImage = files.cover ? files.cover[0] : null
+      const otherFiles = files.files || []
 
-      // Create a new project instance
+      // Ensure cover image is uploaded
+      if (!coverImage) {
+        return res.status(400).json({ message: "Cover image is required." })
+      }
+
+      // Get the file paths
+      const coverImagePath = coverImage.path
+      const otherFilePaths = otherFiles.map((file) => file.path)
+
+      // Create a new project
       const newProject = new Project({
         title,
         description,
         service,
         user: userId,
-        files: filePaths,
+        cover: coverImagePath,
+        files: otherFilePaths,
       })
 
+      // Save the project
       await newProject.save()
 
       return res.status(201).json({
@@ -88,10 +103,12 @@ const projectController = {
     }
   },
 
+  // Update a Project
   updateProject: async (req, res) => {
     const projectId = req.params.id
     const { title, description, service, userId } = req.body
-    const files = req.files
+    const files = req.files.files
+    const coverImage = req.files.cover ? req.files.cover[0] : null
 
     try {
       // Fetch the existing project to retain current files if no new files are provided
@@ -101,11 +118,27 @@ const projectController = {
         return res.status(404).json({ message: "Project not found" })
       }
 
-      const filePaths =
-        files && files.length > 0
-          ? [...existingProject.files, ...files.map((file) => file.path)]
-          : existingProject.files
+      let filePaths = existingProject.files || []
 
+      if (files && files.length > 0) {
+        console.log("New files uploaded:", files)
+        filePaths = [...filePaths, ...files.map((file) => file.path)]
+      } else {
+        console.log("No new files uploaded, keeping existing files.")
+      }
+
+      // Handle the cover image separately
+      let coverImagePath = existingProject.cover
+      if (coverImage) {
+        console.log("New cover image uploaded:", coverImage)
+        coverImagePath = coverImage.path
+      } else {
+        console.log(
+          "No new cover image uploaded, keeping existing cover image."
+        )
+      }
+
+      // Update the project with the new data
       const updatedProject = await Project.findByIdAndUpdate(
         projectId,
         {
@@ -114,17 +147,20 @@ const projectController = {
           service: service || existingProject.service,
           user: userId || existingProject.user,
           files: filePaths,
+          cover: coverImagePath,
           updatedAt: new Date(),
         },
         { new: true, runValidators: true }
       )
+
+      console.log("Updated project:", updatedProject)
 
       return res.status(200).json({
         message: "Project updated successfully",
         project: updatedProject,
       })
     } catch (err) {
-      console.error(err)
+      console.error("Error during project update:", err)
       return res.status(500).json({ message: "Server error" })
     }
   },
