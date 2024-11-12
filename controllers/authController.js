@@ -79,6 +79,13 @@ exports.verifyGoogleToken = async (req, res) => {
   }
 }
 
+exports.googleAuth = (req, res) => {
+  const token = jwt.sign({ id: req.user._id }, process.env.APP_PASSWORD, {
+    expiresIn: "1h",
+  })
+  res.json({ token }) // This should send a token as JSON to confirm success
+}
+
 exports.CheckSession = async (req, res) => {
   const { payload } = res.locals
   res.send(payload)
