@@ -57,19 +57,31 @@ async function verifyGoogleCredential(credential) {
     audience: process.env.GOOGLE_CLIENT_ID,
   })
   const payload = ticket.getPayload()
-  return payload // Contains user info, such as email, name, etc.
+  return payload
 }
 
 exports.verifyGoogleToken = async (req, res) => {
   try {
-    const { credential } = req.body // Receiving credential from frontend
+    const { credential } = req.body
     const userData = await verifyGoogleCredential(credential)
 
     if (userData) {
-      const token = jwt.sign({ id: userData.email }, process.env.APP_SECRET, {
-        expiresIn: "1h",
-      })
-      res.json({ token, user: userData })
+      console.log("Google Payload:", userData)
+
+      const user = await User.findOne({ email: userData.email })
+      console.log(user)
+
+      if (user) {
+        const token = jwt.sign(
+          { id: user._id, email: user.email, role: user.role },
+          process.env.APP_SECRET,
+          { expiresIn: "1h" }
+        )
+
+        res.json({ token, user: { ...userData, role: user.role } })
+      } else {
+        res.status(404).json({ error: "User not registered" })
+      }
     } else {
       res.status(401).json({ error: "Invalid token" })
     }
