@@ -26,6 +26,7 @@ const bookingController = {
         status,
         files
       })
+      console.log('its reaching here')
 
       await newBooking.save()
       return res
@@ -111,17 +112,25 @@ const bookingController = {
 
   getUserBookings: async (req, res) => {
     const userId = req.params.userId
+    console.log('Received userId:', userId) // Log the userId from the URL parameters
 
     try {
+      console.log('Fetching bookings for userId:', userId) // Log before querying the database
+
       const bookings = await Booking.find({ user: userId }).populate('service')
+      //console.log('Bookings found:', bookings) // Log the retrieved bookings
+
       if (bookings.length === 0) {
+        console.log('No bookings found for userId:', userId) // Log when no bookings are found
         return res
           .status(404)
           .json({ message: 'No bookings found for this user' })
       }
+
+      console.log('Returning bookings:', bookings) // Log the bookings being returned
       return res.status(200).json(bookings)
     } catch (err) {
-      console.log(err)
+      console.log('Error occurred:', err) // Log the error if something goes wrong
       return res.status(500).json({ message: 'Server error' })
     }
   }

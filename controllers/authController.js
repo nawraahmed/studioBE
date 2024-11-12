@@ -36,7 +36,7 @@ exports.login = async (req, res) => {
     // Compares the provided password with the stored password
     const matched = await middleware.comparePassword(password, user.password)
     if (matched) {
-      const payload = { id: user._id, email: user.email }
+      const payload = { id: user._id, email: user.email, role: user.role }
       const token = middleware.createToken(payload)
       return res.send({ user: payload, token })
     } else {

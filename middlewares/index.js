@@ -34,12 +34,19 @@ const stripToken = (req, res, next) => {
     if (token) {
       res.locals.token = token
       // If the token exists we add it to the request lifecycle state
+
+      const decoded = jwt.verify(token, process.env.APP_SECRET)
+      req.userId = decoded.userId // Attach userId from the token to the request object
+
+      console.log('Decoded userId:', req.userId) //confirm it's correctly decoded
       return next()
     }
-    res.status(401).send({ status: 'Error', msg: 'Unauthorized' })
+    res.status(401).send({ status: 'Error (backend)', msg: 'Unauthorized' })
   } catch (error) {
     console.log(error)
-    res.status(401).send({ status: 'Error', msg: 'Strip Token Error!' })
+    res
+      .status(401)
+      .send({ status: 'Error (backend)', msg: 'Strip Token Error!' })
   }
 }
 
