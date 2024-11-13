@@ -1,34 +1,70 @@
 const Booking = require('../models/Booking')
 const User = require('../models/User')
 const Service = require('../models/Service')
+const sendEmail = require('../utils/sendEmail')
 
 const bookingController = {
   createBooking: async (req, res) => {
     try {
       const { user, service, bookingDate, status, files } = req.body
 
+      console.log('this is user obj:')
+      console.log(user)
+
       // Check if the user and service exist
       const userExists = await User.findById(user)
       const serviceExists = await Service.findById(service)
 
-      if (!userExists) {
-        return res.status(404).json({ message: 'User not found' })
-      }
+      // if (!userExists) {
+      //   console.log('the issue is here!')
+      //   return res.status(405).json({ message: 'User not found' })
+      // }
+
       if (!serviceExists) {
-        return res.status(404).json({ message: 'Service not found' })
+        return res.status(405).json({ message: 'Service not found' })
       }
 
       // Create new booking
       const newBooking = new Booking({
-        user,
+        user: user,
         service,
         bookingDate,
         status,
         files
       })
-      console.log('its reaching here')
 
       await newBooking.save()
+
+      // Fetch user details to send email
+      const userDetails = await User.findById(user) // Assuming user object contains email
+
+      console.log(userDetails)
+
+      // Send confirmation email to the user
+      const subject = 'Booking Confirmation'
+      const text = `Hello ${
+        userDetails.name
+      },\n\nYour booking for the service "${
+        serviceExists.name
+      }" has been successfully created.\n\nBooking Date: ${new Date(
+        bookingDate
+      ).toLocaleString()}\nStatus: ${status}\n\nThank you for choosing us!`
+      const html = `
+        <h1>Booking Confirmation</h1>
+        <p>Hello ${userDetails.name},</p>
+        <p>Your booking for the service <strong>"${
+          serviceExists.name
+        }"</strong> has been successfully created.</p>
+        <p><strong>Booking Date:</strong> ${new Date(
+          bookingDate
+        ).toLocaleString()}</p>
+        <p><strong>Status:</strong> ${status}</p>
+        <p>Thank you for choosing us!</p>
+      `
+
+      // Send the email
+      await sendEmail(userDetails.email, subject, text, html)
+
       return res
         .status(201)
         .json({ message: 'Booking created successfully', booking: newBooking })
@@ -115,6 +151,8 @@ const bookingController = {
       const userId = req.params.userId
       console.log('Received userId:', userId)
       console.log('Fetching bookings for userId:', userId)
+      //console.log('Fetching bookings for userId:', userId) // Log before querying the database
+
       const bookings = await Booking.find({ user: userId }).populate('service')
 
       if (bookings.length === 0) {
@@ -124,7 +162,7 @@ const bookingController = {
           .json({ message: 'No bookings found for this user.' })
       }
 
-      console.log('Returning bookings:', bookings) // Log the bookings being returned
+      //console.log('Returning bookings:', bookings) // Log the bookings being returned
       return res.status(200).json(bookings)
     } catch (err) {
       console.log('Error occurred:', err) // Log the error if something goes wrong
