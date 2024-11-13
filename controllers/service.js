@@ -3,12 +3,23 @@ const Service = require("../models/Service")
 const serviceController = {
   createService: async (req, res) => {
     try {
-      const { name, description, startingPrice } = req.body
+      const {
+        name_en,
+        name_ar,
+        description_en,
+        description_ar,
+        startingPrice,
+      } = req.body
+
+      // Create a new service with both language fields
       const newService = new Service({
-        name,
-        description,
+        name_en,
+        name_ar,
+        description_en,
+        description_ar,
         startingPrice,
       })
+
       console.log(req.body)
       await newService.save()
       return res
@@ -49,27 +60,35 @@ const serviceController = {
 
   updateService: async (req, res) => {
     const id = req.params.id
-    const { name, description, startingPrice } = req.body
+    const { name_en, name_ar, description_en, description_ar, startingPrice } =
+      req.body
+
     try {
-      const service = await Service.findByIdAndUpdate(
+      const updatedService = await Service.findByIdAndUpdate(
         id,
         {
-          name,
-          description,
+          name_en,
+          name_ar,
+          description_en,
+          description_ar,
           startingPrice,
         },
         { new: true, runValidators: true }
       )
-      if (!service) {
+
+      if (!updatedService) {
         return res.status(404).json({ message: "Service not found" })
       }
-      res.send({ message: "Service updated successfully", service })
+
+      res.send({
+        message: "Service updated successfully",
+        package: updatedService,
+      })
     } catch (err) {
-      console.log(err)
+      console.log("Error updating service:", err)
       return res.status(500).json({ message: "Server error" })
     }
   },
-
   deleteService: async (req, res) => {
     const id = req.params.id
     try {
