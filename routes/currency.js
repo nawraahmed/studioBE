@@ -1,8 +1,11 @@
-// backend/routes/currencyRoutes.js
+// routes/currencyRoutes.js
+
 const express = require('express')
-const { convertCurrency } = require('../controllers/currency')
+const { getExchangeRates } = require('../controllers/currency')
+
 const router = express.Router()
 
-router.get('/convert', convertCurrency)
+// Route to get exchange rates
+router.get('/rates', getExchangeRates)
 
 module.exports = router

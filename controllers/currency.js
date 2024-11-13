@@ -1,26 +1,28 @@
-const axios = require('axios')
-const dotenv = require('dotenv')
-dotenv.config()
+// controllers/currencyController.js
 
-const API_KEY = process.env.API_KEY
-const BASE_URL = process.env.BASE_URL
+const fetch = require('node-fetch')
 
-const convertCurrency = async (req, res) => {
-  const { from, to, amount } = req.query
+// Cache object to store exchange rates
+let cachedRates = {}
+const CACHE_DURATION = 3600000 // 1 hour in milliseconds
 
-  try {
-    const response = await axios.get(`${BASE_URL}/${API_KEY}/latest/${from}`)
-    const rate = response.data.conversion_rates[to]
-
-    if (rate) {
-      const convertedAmount = (amount * rate).toFixed(2)
-      res.json({ convertedAmount })
-    } else {
-      res.status(400).json({ error: 'Currency not supported' })
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch conversion rate' })
-  }
+// Function to fetch exchange rates from API with BHD as the base
+const fetchExchangeRates = async () => {
+  const response = await fetch('https://api.exchangerate-api.com/v4/latest/BHD')
+  const data = await response.json()
+  cachedRates = { rates: data.rates, timestamp: Date.now() }
 }
 
-module.exports = { convertCurrency }
+// Controller function to get exchange rates, with caching logic
+const getExchangeRates = async (req, res) => {
+  // Check if rates are cached and still valid
+  if (
+    !cachedRates.rates ||
+    Date.now() - cachedRates.timestamp > CACHE_DURATION
+  ) {
+    await fetchExchangeRates()
+  }
+  res.json(cachedRates.rates)
+}
+
+module.exports = { getExchangeRates }
