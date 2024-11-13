@@ -27,4 +27,6 @@ router.put(
 router.delete("/project/:id/delete-file", projectController.deleteFile)
 router.delete("/project/:id", projectController.deleteProject)
 
+router.get("/project/:id/reviews", projectController.getReviewsByProjectId)
+
 module.exports = router
