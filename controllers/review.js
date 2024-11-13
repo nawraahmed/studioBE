@@ -1,21 +1,40 @@
 const Review = require("../models/Review")
 const Service = require("../models/Service")
+const Project = require("../models/Project")
 
 const reviewController = {
   createReview: async (req, res) => {
     try {
       const { project, user, comment, rating } = req.body
+
+      // Create a new review
       const newReview = new Review({
         project,
         user,
         comment,
         rating,
       })
-      console.log(req.body)
+
+      // Save the new review
       await newReview.save()
-      return res
-        .status(201)
-        .json({ message: "Review created successfully", review: newReview })
+
+      // Find the project and add the new review to its reviews array
+      const updatedProject = await Project.findByIdAndUpdate(
+        project, // project ID from the request body
+        { $push: { reviews: newReview._id } }, // Add the review ID to the reviews array
+        { new: true } // Return the updated project document
+      )
+
+      if (!updatedProject) {
+        return res.status(404).json({ message: "Project not found" })
+      }
+
+      // Send success response
+      return res.status(201).json({
+        message: "Review created successfully",
+        review: newReview,
+        project: updatedProject,
+      })
     } catch (err) {
       console.log(err)
       return res.status(500).json({ message: "Server error" })

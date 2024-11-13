@@ -9,6 +9,12 @@ const ProjectSchema = new Schema(
     cover: { type: String, required: true },
     files: [{ type: String }],
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    reviews: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Review",
+      },
+    ],
   },
   { timestamps: true }
 )

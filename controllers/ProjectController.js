@@ -2,6 +2,7 @@ const Project = require("../models/Project")
 const User = require("../models/User")
 const Service = require("../models/Service")
 const multer = require("multer")
+const Review = require("../models/Review")
 
 // Set up multer for file upload handling
 const storage = multer.diskStorage({
@@ -206,6 +207,29 @@ const projectController = {
     } catch (err) {
       console.error(err)
       return res.status(500).json({ message: "Server error" })
+    }
+  },
+  getReviewsByProjectId: async (req, res) => {
+    const projectId = req.params.id
+    try {
+      const project = await Project.findById(projectId)
+        .populate({
+          path: "reviews",
+          populate: {
+            path: "user",
+            select: "name",
+          },
+        })
+        .exec()
+
+      if (!project) {
+        return res.status(404).send({ message: "Project not found" })
+      }
+
+      res.status(200).json({ reviews: project.reviews })
+    } catch (err) {
+      console.error(err)
+      res.status(500).send({ message: "Error retrieving reviews", error: err })
     }
   },
 }
