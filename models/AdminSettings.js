@@ -2,9 +2,10 @@ const mongoose = require("mongoose")
 
 const AdminSettingsSchema = new mongoose.Schema(
   {
-    businessHours: { type: String, required: true },
-    holidays: { type: [String], required: true },
-    unavailableDays: { type: [String], required: true },
+    title: { type: String, required: true },
+    start: { type: Date, required: true }, // Start date and time
+    end: { type: Date, required: true }, // End date and time
+    color: { type: String, default: "#85C1E9" }, // Optional color field
   },
   { timestamps: true }
 )
