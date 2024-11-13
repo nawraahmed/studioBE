@@ -2,8 +2,14 @@ const mongoose = require("mongoose")
 
 const ServiceSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    description: { type: String, required: true },
+    name: {
+      en: { type: String, required: true },
+      ar: { type: String, required: true },
+    },
+    description: {
+      en: { type: String, required: true },
+      ar: { type: String, required: true },
+    },
     startingPrice: { type: Number, required: true },
   },
   { timestamps: true }
