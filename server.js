@@ -48,6 +48,8 @@ const googleAuthRoutes = require('./routes/googleAuth')
 const bookingRouter = require('./routes/booking')
 const logsRoute = require('./routes/logs')
 const userRouter = require('./routes/user')
+const currencyRoutes = require('./routes/currency')
+
 
 // Mount Routes
 app.use('/package', packageRoute)
@@ -60,6 +62,8 @@ app.use('/auth', authRoutes)
 app.use(googleAuthRoutes)
 app.use('/logs', logsRoute)
 app.use('/api', userRouter)
+app.use('/api/currency', currencyRoutes)
+
 
 // Start Server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
