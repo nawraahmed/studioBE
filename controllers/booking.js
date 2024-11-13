@@ -65,6 +65,31 @@ const bookingController = {
       // Send the email
       await sendEmail(userDetails.email, subject, text, html)
 
+      // Send confirmation email to the admin
+      const adminEmail = 'fatema.jadeed266@gmail.com'
+      const adminSubject = `New Booking Alert: ${userDetails.name}`
+      const adminText = `Admin Notification:\n\nA new booking has been created by ${
+        userDetails.name
+      }.\n\nService: "${serviceExists.name}"\nBooking Date: ${new Date(
+        bookingDate
+      ).toLocaleString()}\nStatus: ${status}\n\nPlease check the system for more details.`
+      const adminHtml = `
+      <h1>New Booking Alert</h1>
+      <p>Admin Notification:</p>
+      <p>A new booking has been created by <strong>${
+        userDetails.name
+      }</strong>.</p>
+      <p><strong>Service:</strong> "${serviceExists.name}"</p>
+      <p><strong>Booking Date:</strong> ${new Date(
+        bookingDate
+      ).toLocaleString()}</p>
+      <p><strong>Status:</strong> ${status}</p>
+      <p>Please check the system for more details.</p>
+    `
+
+      // Send the email to the admin
+      await sendEmail(adminEmail, adminSubject, adminText, adminHtml)
+
       return res
         .status(201)
         .json({ message: 'Booking created successfully', booking: newBooking })
